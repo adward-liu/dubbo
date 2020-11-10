@@ -70,6 +70,7 @@ public class Transporters {
         } else if (handlers.length == 1) {
             handler = handlers[0];
         } else {
+            //如果handler > 1 创建 ChannelHandlerDispatcher
             handler = new ChannelHandlerDispatcher(handlers);
         }
         return getTransporter().connect(url, handler);

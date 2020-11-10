@@ -161,6 +161,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             throw new IllegalStateException("Already destroyed!");
         }
         if (ref == null) {
+            //初始化
             init();
         }
         return ref;
@@ -195,8 +196,10 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         checkDefault();
         appendProperties(this);
         if (getGeneric() == null && getConsumer() != null) {
+            //设置generic
             setGeneric(getConsumer().getGeneric());
         }
+        //检测是否支持泛化
         if (ProtocolUtils.isGeneric(getGeneric())) {
             interfaceClass = GenericService.class;
         } else {
@@ -302,6 +305,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             }
         }
         map.put(Constants.INTERFACE_KEY, interfaceName);
+        // 将 ApplicationConfig、ConsumerConfig、ReferenceConfig 等对象的字段信息添加到 map 中
         appendParameters(map, application);
         appendParameters(map, module);
         appendParameters(map, consumer, Constants.DEFAULT_KEY);
@@ -321,9 +325,10 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                 checkAndConvertImplicitConfig(method, map, attributes);
             }
         }
-
+        //获取服务消费者 ip 地址
         String hostToRegistry = ConfigUtils.getSystemProperty(Constants.DUBBO_IP_TO_REGISTRY);
         if (hostToRegistry == null || hostToRegistry.length() == 0) {
+            //获取本地的ip
             hostToRegistry = NetUtils.getLocalHost();
         } else if (isInvalidLocalHost(hostToRegistry)) {
             throw new IllegalArgumentException("Specified invalid registry ip from property:" + Constants.DUBBO_IP_TO_REGISTRY + ", value:" + hostToRegistry);
@@ -331,7 +336,9 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         map.put(Constants.REGISTER_IP_KEY, hostToRegistry);
 
         //attributes are stored by system context.
+        //将attributes 放入上下文中
         StaticContext.getSystemContext().putAll(attributes);
+        //创建代理类
         ref = createProxy(map);
         ConsumerModel consumerModel = new ConsumerModel(getUniqueServiceName(), this, ref, interfaceClass.getMethods());
         ApplicationModel.initConsumerModel(getUniqueServiceName(), consumerModel);
@@ -344,6 +351,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
         if (isInjvm() == null) {
             if (url != null && url.length() > 0) { // if a url is specified, don't do local reference
                 isJvmRefer = false;
+                //根据 url 的协议、scope 以及 injvm 等参数检测是否需要本地引用
+                //例如 scope = local
             } else if (InjvmProtocol.getInjvmProtocol().isInjvmRefer(tmpUrl)) {
                 // by default, reference local service if there is
                 isJvmRefer = true;
@@ -354,7 +363,9 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             isJvmRefer = isInjvm().booleanValue();
         }
 
+        //本地引用
         if (isJvmRefer) {
+            //生成本地引用 url 协议 injvm
             URL url = new URL(Constants.LOCAL_PROTOCOL, NetUtils.LOCALHOST, 0, interfaceClass.getName()).addParameters(map);
             invoker = refprotocol.refer(interfaceClass, url);
             if (logger.isInfoEnabled()) {
@@ -395,6 +406,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             if (urls.size() == 1) {
                 invoker = refprotocol.refer(interfaceClass, urls.get(0));
             } else {
+                //多个注册中心
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
                 for (URL url : urls) {

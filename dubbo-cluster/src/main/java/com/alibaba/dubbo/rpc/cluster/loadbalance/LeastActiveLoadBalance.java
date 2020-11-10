@@ -26,7 +26,7 @@ import java.util.Random;
 
 /**
  * LeastActiveLoadBalance
- *
+ * 最近负载
  */
 public class LeastActiveLoadBalance extends AbstractLoadBalance {
 

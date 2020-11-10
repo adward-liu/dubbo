@@ -25,7 +25,7 @@ import java.util.Random;
 
 /**
  * random load balance.
- *
+ * 随机负载
  */
 public class RandomLoadBalance extends AbstractLoadBalance {
 
@@ -38,6 +38,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         int length = invokers.size(); // Number of invokers
         int totalWeight = 0; // The sum of weights
         boolean sameWeight = true; // Every invoker has the same weight?
+        //随机负载  所有的权重相加 例如 【A.B,C】 三台机器 权重【4，5，3】 总权重是12 【0-4】服务A【5-10】 服务B 。。。。随机数
         for (int i = 0; i < length; i++) {
             int weight = getWeight(invokers.get(i), invocation);
             totalWeight += weight; // Sum

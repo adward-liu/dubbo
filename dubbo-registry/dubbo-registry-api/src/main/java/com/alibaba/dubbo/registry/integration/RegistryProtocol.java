@@ -125,7 +125,9 @@ public class RegistryProtocol implements Protocol {
     }
 
     public void register(URL registryUrl, URL registedProviderUrl) {
+        //获取注册 AbstractRegistryFactory
         Registry registry = registryFactory.getRegistry(registryUrl);
+        //注册中心注册  FailbackRegistry
         registry.register(registedProviderUrl);
     }
 
@@ -279,6 +281,7 @@ public class RegistryProtocol implements Protocol {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        //设置协议头
         url = url.setProtocol(url.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY)).removeParameter(Constants.REGISTRY_KEY);
         Registry registry = registryFactory.getRegistry(url);
         if (RegistryService.class.equals(type)) {
