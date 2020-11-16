@@ -36,6 +36,7 @@ public class AllChannelHandler extends WrappedChannelHandler {
         super(handler, url);
     }
 
+    /*处理链接事件*/
     @Override
     public void connected(Channel channel) throws RemotingException {
         ExecutorService cexecutor = getExecutorService();
@@ -47,6 +48,7 @@ public class AllChannelHandler extends WrappedChannelHandler {
     }
 
     @Override
+    /*处理断开事件*/
     public void disconnected(Channel channel) throws RemotingException {
         ExecutorService cexecutor = getExecutorService();
         try {
@@ -57,9 +59,11 @@ public class AllChannelHandler extends WrappedChannelHandler {
     }
 
     @Override
+    /*处理请求和响应消息，这里的 message 变量类型可能是 Request，也可能是 Response*/
     public void received(Channel channel, Object message) throws RemotingException {
         ExecutorService cexecutor = getExecutorService();
         try {
+            //ChannelEventRunnable处理
             cexecutor.execute(new ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));
         } catch (Throwable t) {
             //TODO A temporary solution to the problem that the exception information can not be sent to the opposite end after the thread pool is full. Need a refactoring

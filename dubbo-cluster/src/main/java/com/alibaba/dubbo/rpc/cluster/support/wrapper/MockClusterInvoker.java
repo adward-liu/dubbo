@@ -67,8 +67,10 @@ public class MockClusterInvoker<T> implements Invoker<T> {
 
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
+        //invocation RpcInvocation  methodName,  parameterTypes, arguments
         Result result = null;
 
+        // //dubbo的服务降级策略，失败之后会走mock方法，打到服务降级的策略，https://www.jianshu.com/p/d71c7771b9c9
         String value = directory.getUrl().getMethodParameter(invocation.getMethodName(), Constants.MOCK_KEY, Boolean.FALSE.toString()).trim();
         if (value.length() == 0 || value.equalsIgnoreCase("false")) {
             //no mock
@@ -81,6 +83,7 @@ public class MockClusterInvoker<T> implements Invoker<T> {
             result = doMockInvoke(invocation, null);
         } else {
             //fail-mock
+            //服务降级
             try {
                 result = this.invoker.invoke(invocation);
             } catch (RpcException e) {

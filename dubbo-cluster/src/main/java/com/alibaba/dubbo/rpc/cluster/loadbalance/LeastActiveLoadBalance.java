@@ -36,16 +36,24 @@ public class LeastActiveLoadBalance extends AbstractLoadBalance {
 
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        //总共的invoker数目
         int length = invokers.size(); // Number of invokers
+        //最小的活跃数
         int leastActive = -1; // The least active value of all invokers
+        //相同 最小活跃数 统计
         int leastCount = 0; // The number of invokers having the same least active value (leastActive)
+        //记录最小活跃数 invoker角标
         int[] leastIndexs = new int[length]; // The index of invokers having the same least active value (leastActive)
+        //权重总和
         int totalWeight = 0; // The sum of with warmup weights
+        //第一个权重
         int firstWeight = 0; // Initial value, used for comparision
         boolean sameWeight = true; // Every invoker has the same weight value?
         for (int i = 0; i < length; i++) {
             Invoker<T> invoker = invokers.get(i);
+            //获取活跃数
             int active = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName()).getActive(); // Active number
+            //获取权重
             int afterWarmup = getWeight(invoker, invocation); // Weight
             if (leastActive == -1 || active < leastActive) { // Restart, when find a invoker having smaller least active value.
                 leastActive = active; // Record the current least active value

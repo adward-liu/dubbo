@@ -97,6 +97,7 @@ public class DecodeableRpcInvocation extends RpcInvocation implements Codec, Dec
         setAttachment(Constants.PATH_KEY, in.readUTF());
         setAttachment(Constants.VERSION_KEY, in.readUTF());
 
+        //获取消费端使用的方法
         setMethodName(in.readUTF());
         try {
             Object[] args;

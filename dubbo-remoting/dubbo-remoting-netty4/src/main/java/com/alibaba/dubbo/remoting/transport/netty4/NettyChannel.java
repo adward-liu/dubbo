@@ -57,6 +57,7 @@ final class NettyChannel extends AbstractChannel {
         if (ch == null) {
             return null;
         }
+        //获取channel实例
         NettyChannel ret = channelMap.get(ch);
         if (ret == null) {
             NettyChannel nettyChannel = new NettyChannel(ch, url, handler);
@@ -98,6 +99,7 @@ final class NettyChannel extends AbstractChannel {
         boolean success = true;
         int timeout = 0;
         try {
+            //发送消息
             ChannelFuture future = channel.writeAndFlush(message);
             if (sent) {
                 timeout = getUrl().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);

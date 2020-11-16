@@ -42,6 +42,7 @@ public abstract class AbstractLoadBalance implements LoadBalance {
             return null;
         if (invokers.size() == 1)
             return invokers.get(0);
+        //调用具体的负载策略
         return doSelect(invokers, url, invocation);
     }
 
@@ -52,10 +53,14 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         //从url中获取权重
         int weight = invoker.getUrl().getMethodParameter(invocation.getMethodName(), Constants.WEIGHT_KEY, Constants.DEFAULT_WEIGHT);
         if (weight > 0) {
+            //获取时间戳
             long timestamp = invoker.getUrl().getParameter(Constants.REMOTE_TIMESTAMP_KEY, 0L);
             if (timestamp > 0L) {
+                //运行时间
                 int uptime = (int) (System.currentTimeMillis() - timestamp);
+                //预热时间
                 int warmup = invoker.getUrl().getParameter(Constants.WARMUP_KEY, Constants.DEFAULT_WARMUP);
+                //运行时间小于预热时间
                 if (uptime > 0 && uptime < warmup) {
                     weight = calculateWarmupWeight(uptime, warmup, weight);
                 }

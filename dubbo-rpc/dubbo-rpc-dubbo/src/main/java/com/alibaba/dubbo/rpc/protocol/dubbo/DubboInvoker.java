@@ -68,6 +68,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
     protected Result doInvoke(final Invocation invocation) throws Throwable {
         RpcInvocation inv = (RpcInvocation) invocation;
         final String methodName = RpcUtils.getMethodName(invocation);
+        //添加path以及version信息
         inv.setAttachment(Constants.PATH_KEY, getUrl().getPath());
         inv.setAttachment(Constants.VERSION_KEY, version);
 
@@ -78,20 +79,28 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
             currentClient = clients[index.getAndIncrement() % clients.length];
         }
         try {
+            //获取调用方式
             boolean isAsync = RpcUtils.isAsync(getUrl(), invocation);
             boolean isOneway = RpcUtils.isOneway(getUrl(), invocation);
             int timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
+
             if (isOneway) {
+                //异步调用 无返回值
                 boolean isSent = getUrl().getMethodParameter(methodName, Constants.SENT_KEY, false);
                 currentClient.send(inv, isSent);
                 RpcContext.getContext().setFuture(null);
                 return new RpcResult();
             } else if (isAsync) {
+                //异步调用 有返回值
                 ResponseFuture future = currentClient.request(inv, timeout);
+                //FutureAdapter 适配器 将jdk中future与ResponseFuture结合 get实际调用的是ResponseFuture的get方法
                 RpcContext.getContext().setFuture(new FutureAdapter<Object>(future));
                 return new RpcResult();
             } else {
+                //同步调用
                 RpcContext.getContext().setFuture(null);
+                //阻塞 直到获取到返回值 DefaultFuture 默认实现类
+                //发送消息
                 return (Result) currentClient.request(inv, timeout).get();
             }
         } catch (TimeoutException e) {
