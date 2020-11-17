@@ -64,6 +64,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
 
         this.directory = directory;
         //sticky: invoker.isAvailable() should always be checked before using when availablecheck is true.
+        //是否开启可用性检测 默认开启
         this.availablecheck = url.getParameter(Constants.CLUSTER_AVAILABLE_CHECK_KEY, Constants.DEFAULT_CLUSTER_AVAILABLE_CHECK);
     }
 
@@ -113,19 +114,25 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
             return null;
         String methodName = invocation == null ? "" : invocation.getMethodName();
 
+        //sticky 配置，sticky 表示粘滞连接。所谓粘滞连接是指让服务消费者尽可能的
+        //调用同一个服务提供者，除非该提供者挂了再进行切换
         boolean sticky = invokers.get(0).getUrl().getMethodParameter(methodName, Constants.CLUSTER_STICKY_KEY, Constants.DEFAULT_CLUSTER_STICKY);
         {
             //ignore overloaded method
+            //stickyInvoker不为空，但是invokers没有stickyInvoker 可能是stickyInvoker挂掉了
             if (stickyInvoker != null && !invokers.contains(stickyInvoker)) {
                 stickyInvoker = null;
             }
             //ignore concurrency problem
+            //stickyInvoker为空
             if (sticky && stickyInvoker != null && (selected == null || !selected.contains(stickyInvoker))) {
+                //availablecheck可用性检测(默认开启)以及isAvailable 方法进行检查
                 if (availablecheck && stickyInvoker.isAvailable()) {
                     return stickyInvoker;
                 }
             }
         }
+        //如果stickyInvoker为空 重新选择
         Invoker<T> invoker = doSelect(loadbalance, invocation, invokers, selected);
 
         if (sticky) {
